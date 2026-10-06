@@ -1,6 +1,6 @@
 # LawnFlow
 
-A lawn-care platform built incrementally. **Milestone 4: customer quote requests, with the public website and database foundation preserved.** The Milestone 1 branding, homepage hero, layout and tooling are retained. This preview does not send contact drafts, calculate prices or create bookings.
+A lawn-care platform built incrementally.  customer quote requests, with the public website and database foundation preserved.** The Milestone 1 branding, homepage hero, layout and tooling are retained. This preview does not send contact drafts, calculate prices or create bookings.
 
 ## Run locally
 
