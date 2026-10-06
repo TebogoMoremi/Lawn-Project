@@ -9,10 +9,13 @@ export function parseContactNumber(value: string | undefined): string | null {
   return number;
 }
 
-export function getWhatsAppUrl(number: string | null): string | null {
+export function getWhatsAppUrl(
+  number: string | null,
+  message = "Hi LawnFlow, I'd like to enquire about lawn care.",
+): string | null {
   if (!number) return null;
   const validated = parseContactNumber(number);
-  return `https://wa.me/${validated}?text=${encodeURIComponent("Hi LawnFlow, I'd like to enquire about lawn care.")}`;
+  return `https://wa.me/${validated}?text=${encodeURIComponent(message)}`;
 }
 
 export const siteConfig = {

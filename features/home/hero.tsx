@@ -28,13 +28,14 @@ export function Hero() {
         </div>
         <p className="quiet-note">Your garden. Our care. More time for you.</p>
       </div>
-      <figure className="hero-visual" id="gallery">
+      <figure className="hero-visual">
         <Image
           src="/images/garden-illustration.svg"
           alt="Illustrated garden with a striped green lawn, stepping stones and leafy planting"
           width={680}
           height={740}
-          priority
+          preload
+          sizes="(max-width: 800px) 90vw, 45vw"
         />
         <div className="garden-caption">
           <span className="garden-icon" aria-hidden="true">

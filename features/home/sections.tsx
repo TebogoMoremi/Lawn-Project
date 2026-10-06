@@ -1,7 +1,14 @@
-import { ButtonLink } from "@/components/ui/button-link";
-import { WhatsAppLink } from "@/components/whatsapp-link";
-import { siteConfig } from "@/lib/config";
-import { services, steps } from "./content";
+import Link from "next/link";
+import { services } from "@/data/services";
+import { areas, coverageNotice } from "@/data/areas";
+import { generalFaq } from "@/data/faq";
+import { galleryProjects } from "@/data/gallery";
+import { ServiceCard } from "@/components/public/service-card";
+import { AreaCard } from "@/components/public/area-card";
+import { GalleryCard } from "@/components/public/gallery-card";
+import { HowItWorks } from "@/components/public/how-it-works";
+import { FAQ } from "@/components/public/faq";
+import { CTASection } from "@/components/public/cta-section";
 
 export function HomeSections() {
   return (
@@ -27,46 +34,18 @@ export function HomeSections() {
           </p>
         </div>
         <div className="service-grid">
-          {services.map((service) => (
-            <article className="service-card" key={service.number}>
-              <div className="service-symbol" aria-hidden="true">
-                {service.symbol}
-              </div>
-              <p className="eyebrow">{service.detail}</p>
-              <h3>{service.title}</h3>
-              <p>{service.description}</p>
-              <a href="/quote">
-                Enquire about this service <span aria-hidden="true">↗</span>
-              </a>
-            </article>
+          {[services[0], services[1], services[2]].map((service) => (
+            <ServiceCard key={service.slug} service={service} />
           ))}
         </div>
-        <p className="section-note">
-          Service preview · Full service details and coverage will be confirmed
-          before launch.
-        </p>
+        <Link className="text-link" href="/services">
+          Explore all services ↗
+        </Link>
       </section>
-      <section className="process-section" id="how-it-works">
-        <div className="container section">
-          <p className="eyebrow">FROM TO-DO TO TA-DA</p>
-          <h2>A simpler way to a tidy garden.</h2>
-          <p className="intro">
-            Here’s how LawnFlow will work when bookings open.
-          </p>
-          <div className="steps">
-            {steps.map((step, index) => (
-              <article key={step.title}>
-                <span className="step-number">0{index + 1}</span>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HowItWorks />
       <section id="about" className="section container values">
         <div>
-          <p className="eyebrow">GROUNDED IN GOOD CARE</p>
+          <p className="eyebrow">WHY CHOOSE LAWNFLOW</p>
           <h2>
             Your outdoor space.
             <br />
@@ -77,6 +56,9 @@ export function HomeSections() {
             garden should feel straightforward, from the first conversation to
             the final tidy-up.
           </p>
+          <Link className="text-link" href="/about">
+            Get to know our approach ↗
+          </Link>
         </div>
         <div className="value-list">
           <article>
@@ -111,33 +93,40 @@ export function HomeSections() {
           </article>
         </div>
       </section>
-      <section id="areas" className="container area-note">
-        <span className="eyebrow">GROWING LOCALLY</span>
-        <h2>Closer to home.</h2>
-        <p>
-          Our service areas are being finalised. Coverage details will be
-          published before bookings open.
-        </p>
-      </section>
-      <section id="contact" className="container final-cta">
-        <p className="eyebrow">LET’S MAKE ROOM FOR MORE GREEN</p>
-        <h2>
-          A lawn you love.
-          <br />A weekend that’s yours.
-        </h2>
-        <p>Start with a conversation. We’ll take it from there.</p>
-        <div className="button-row">
-          <ButtonLink href="/quote">
-            Get Free Quote <span aria-hidden="true">↗</span>
-          </ButtonLink>
-          <WhatsAppLink />
+      <section id="gallery" className="container section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">BEFORE & AFTER · CONCEPT PREVIEW</p>
+            <h2>A little care changes the view.</h2>
+          </div>
+          <p>
+            Illustrations only.
+            <br />
+            Not real customer projects.
+          </p>
         </div>
-        <p className="contact-status">
-          {siteConfig.whatsappNumber
-            ? "WhatsApp opens a direct enquiry. This does not create a quote or booking."
-            : "Development preview: WhatsApp is not connected yet. Online quote requests are coming soon."}
-        </p>
+        <GalleryCard project={galleryProjects[0]} />
+        <Link className="text-link" href="/gallery">
+          View all garden concepts ↗
+        </Link>
       </section>
+      <section id="areas" className="container section">
+        <p className="eyebrow">GROWING LOCALLY</p>
+        <h2>Closer to home.</h2>
+        <p className="intro">{coverageNotice}</p>
+        <div className="service-grid section-grid">
+          {areas.map((area) => (
+            <AreaCard key={area.slug} area={area} />
+          ))}
+        </div>
+        <Link className="text-link" href="/areas">
+          Explore planned coverage ↗
+        </Link>
+      </section>
+      <FAQ items={generalFaq} />
+      <div id="contact">
+        <CTASection />
+      </div>
     </>
   );
 }

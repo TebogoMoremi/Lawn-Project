@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { ButtonLink } from "@/components/ui/button-link";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 
-export const metadata: Metadata = { title: "Quote requests coming soon" };
+export const metadata: Metadata = {
+  title: "Quote requests coming soon",
+  description:
+    "LawnFlow online quote requests are not open yet. Explore the services or use a configured WhatsApp enquiry option.",
+};
 
 export default function QuotePage() {
   return (

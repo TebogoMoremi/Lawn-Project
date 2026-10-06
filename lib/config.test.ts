@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { getWhatsAppUrl, parseContactNumber } from "./config";
 
 describe("business contact configuration", () => {
+  it("encodes a service-specific enquiry without changing the destination", () => {
+    const message = "Hi LawnFlow, grass cutting & edging? #garden";
+    const url = new URL(getWhatsAppUrl("27123456789", message)!);
+    expect(url.searchParams.get("text")).toBe(message);
+    expect(url.origin).toBe("https://wa.me");
+    expect(getWhatsAppUrl(null, message)).toBeNull();
+  });
   it("keeps an unconfigured integration unavailable", () => {
     expect(parseContactNumber(undefined)).toBeNull();
     expect(parseContactNumber("  ")).toBeNull();
