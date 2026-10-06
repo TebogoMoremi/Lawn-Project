@@ -1,6 +1,6 @@
 # LawnFlow
 
-A lawn-care platform built incrementally. **Milestone 3: database foundation, with the Milestone 2 public website preserved.** The Milestone 1 branding, homepage hero, layout and tooling are retained. This preview does not send contact drafts, calculate prices or create bookings.
+A lawn-care platform built incrementally. **Milestone 4: customer quote requests, with the public website and database foundation preserved.** The Milestone 1 branding, homepage hero, layout and tooling are retained. This preview does not send contact drafts, calculate prices or create bookings.
 
 ## Run locally
 
@@ -22,7 +22,9 @@ Open http://localhost:3000. For a production preview, run `npm run build` then `
 - `/gallery`: four categories with clearly labelled before/after concept illustrations, not customer projects.
 - `/about`: the intended approach to care, communication and quotes.
 - `/contact`: a client-validated draft preview; no network submission, message delivery or application storage.
-- `/quote`: the existing coming-soon destination.
+- `/quote`: seven-step quote request form, available only with a configured database and active services.
+- `/quote/success`: private, cookie-protected confirmation; no public lookup by reference.
+- `POST /api/quotes`: validated multipart submission, private photo storage and transactional quote creation.
 
 All service and area slugs are prerendered with data-driven metadata. Unknown slugs return 404. The preview retains `noindex, nofollow`; review this before a public launch.
 
@@ -37,8 +39,11 @@ components/
   contact-form.tsx      Client-side draft validation and accessible feedback
   whatsapp-link.tsx     Centralized config-aware enquiry link
 features/home/          Homepage composition and shared process content
+features/quote/         Quote wizard, shared Zod validation and tests
 data/                   Typed services, areas, gallery and FAQ content
 lib/                    Configuration, contact validation and unit tests
+  quotes/               Quote creation, uploads, request bounds and rate guard
+  storage/              Private local storage abstraction
 public/images/          Local SVG concept illustrations
 scripts/verify-public.mjs Production HTTP route/link/image checks
 ```
@@ -49,7 +54,7 @@ Next.js App Router, React, strict TypeScript, Tailwind CSS v4, ESLint, Prettier 
 
 Copy `.env.example` to `.env.local`. `NEXT_PUBLIC_WHATSAPP_NUMBER` is optional: 8–15 international digits, no `+` or spaces. When missing, every WhatsApp CTA links to the explanatory notice on `/contact#whatsapp-status`. When configured, it opens an enquiry; no quote or booking is created. Service and area pages supply contextual messages through the shared component. Restart/rebuild after changing public environment variables. Never put secrets in `NEXT_PUBLIC_*` variables.
 
-`DATABASE_URL` now configures PostgreSQL for Prisma tooling and future server-side data access. The public website still uses static content and needs no database. Copy `.env.example` to `.env` for database tooling and replace its placeholders with development credentials. `.env*` stays ignored except `.env.example`. See the database section below.
+`DATABASE_URL` configures PostgreSQL for Prisma tooling and server-side quote requests. The other public pages still use static content and need no database. Copy `.env.example` to `.env` for database tooling and replace its placeholders with development credentials. `.env*` stays ignored except `.env.example`. See [quote setup and limitations](docs/quote-requests.md) and the database section below. Seeded services stay inactive until intentionally enabled for development; the form never falls back to a static catalogue.
 
 Add/remove services in `data/services.ts`, and update area service references in `data/areas.ts` as necessary. Add/remove areas in `data/areas.ts`; route generation and cards follow the catalogue. Gallery entries store image paths, alt text and dimensions separately from the card; future approved remote storage can use the same shape with an explicit Next.js image allowlist.
 

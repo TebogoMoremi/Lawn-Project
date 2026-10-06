@@ -22,7 +22,7 @@ export default function ServicesPage() {
         <h2>Find your kind of care.</h2>
         <p className="intro">
           Service scope and availability are confirmed before any work is
-          agreed. Online quote requests are coming soon.
+          agreed. Quote requests are reviewed before a price is confirmed.
         </p>
         <div className="service-grid section-grid">
           {services.map((service) => (

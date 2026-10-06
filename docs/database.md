@@ -2,6 +2,8 @@
 
 Milestone 3 adds PostgreSQL and Prisma 7.10.0 without connecting the public website to a database. Static content, pages and contact-preview behavior are unchanged. Node 24.13.1 is used for local verification and GitHub Actions. Prisma 8 was a release candidate when dependencies were selected, so the stable 7.10.0 packages are pinned together.
 
+Milestone 4 now connects quote requests to PostgreSQL. It adds the `LawnSizeCategory` enum, optional quote receipt/privacy fields and `QuoteReferenceCounter` (17 models, 13 enums total). The additive `20261006010000_quote_requests` migration preserves the original migration and its constraints. Both migrations remain unapplied in this workspace. See [quote request operations](quote-requests.md).
+
 ## Setup and environments
 
 Use a separately provisioned PostgreSQL database for development. No OS software, Docker environment or production database was installed or configured by this milestone. Inspection found no local PostgreSQL service, `psql`/`pg_isready` command, conventional installation directory, listener on port 5432, local environment file or supplied `DATABASE_URL`.

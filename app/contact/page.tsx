@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/config";
 export const metadata: Metadata = {
   title: "Contact LawnFlow",
   description:
-    "Explore ways to enquire about LawnFlow lawn care. Online message delivery and quote requests are coming soon.",
+    "Explore ways to enquire about LawnFlow lawn care and request a quote for review.",
 };
 export default function ContactPage() {
   return (
@@ -14,7 +14,7 @@ export default function ContactPage() {
       <PageHero
         eyebrow="LET’S TALK ABOUT YOUR GARDEN"
         title="A conversation is a good start."
-        description="Have a lawn-care question? Review the contact options below. Online quotes and message delivery are still being prepared."
+        description="Have a lawn-care question? Review the contact options below, or visit Get Free Quote to check request availability."
       />
       <section className="container section contact-layout">
         <div>
@@ -32,8 +32,9 @@ export default function ContactPage() {
             </p>
           </div>
           <p className="intro">
-            Get Free Quote currently opens our coming-soon page. It does not
-            create or reserve a request.
+            Use Get Free Quote to request a review when online requests are
+            available. A request does not reserve an appointment or confirm a
+            price.
           </p>
         </div>
         <div>

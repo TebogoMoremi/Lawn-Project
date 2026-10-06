@@ -20,7 +20,7 @@ export function CTASection({ message }: { message?: string }) {
       <p className="contact-status">
         {siteConfig.whatsappNumber
           ? "WhatsApp opens a direct enquiry. This does not create a quote or booking."
-          : "Development preview: WhatsApp is not connected yet. Online quote requests are coming soon."}
+          : "WhatsApp is not connected yet. Visit Get Free Quote to check online request availability."}
       </p>
     </section>
   );

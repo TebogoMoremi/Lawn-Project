@@ -1,7 +1,7 @@
 export const steps = [
   {
     title: "Tell us about your garden",
-    text: "Share the services you need, your location and a few photos when quote requests open.",
+    text: "Request a review with the services you need, your location and optional garden photos.",
   },
   {
     title: "Get a quote, reviewed by a person",

@@ -4,7 +4,7 @@ export const generalFaq: FAQItem[] = [
   {
     question: "Can I book a visit online?",
     answer:
-      "Not yet. This is a public website preview. Quote requests and booking tools will be added later; no visit is reserved by using this site.",
+      "Not yet. You can request a quote when online requests are available, but the details need review. Booking tools will be added later; no visit is reserved by submitting a request.",
   },
   {
     question: "How will my quote be worked out?",
