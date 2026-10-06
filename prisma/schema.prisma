@@ -1,0 +1,413 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum QuoteStatus {
+  DRAFT
+  QUOTE_REQUESTED
+  AWAITING_AVAILABILITY
+  AVAILABILITY_SELECTED
+  UNDER_REVIEW
+  QUOTE_SENT
+  QUOTE_ACCEPTED
+  QUOTE_DECLINED
+  BOOKED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+  SHARED_PROPERTY
+  OTHER
+}
+
+enum LawnCondition {
+  MAINTAINED
+  OVERGROWN
+  HEAVILY_OVERGROWN
+  UNKNOWN
+}
+
+enum ServiceFrequency {
+  ONCE_OFF
+  WEEKLY
+  FORTNIGHTLY
+  MONTHLY
+  CUSTOM
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  UNAVAILABLE
+  BLOCKED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum GalleryCategory {
+  GRASS_CUTTING
+  GARDEN_CLEANUP
+  HEDGE_TRIMMING
+  LAWN_MAINTENANCE
+}
+
+enum GalleryStage {
+  BEFORE
+  AFTER
+  STANDALONE
+}
+
+enum AIMessageRole {
+  SYSTEM
+  USER
+  ASSISTANT
+}
+
+enum AuditActorType {
+  SYSTEM
+  ADMIN
+  CUSTOMER
+}
+
+model Customer {
+  id              String           @id @default(uuid()) @db.Uuid
+  firstName       String           @db.VarChar(100)
+  lastName        String?          @db.VarChar(100)
+  // Shared contact details are allowed; these are not authentication identities.
+  email           String?          @db.VarChar(254)
+  phone           String?          @db.VarChar(16)
+  createdAt       DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime         @updatedAt @db.Timestamptz(3)
+  addresses       Address[]
+  quotes          Quote[]
+  bookings        Booking[]
+  notifications   Notification[]
+  reviews         Review[]
+  aiConversations AIConversation[]
+
+  @@index([email])
+  @@index([phone])
+}
+
+model Address {
+  id           String   @id @default(uuid()) @db.Uuid
+  customerId   String   @db.Uuid
+  addressLine1 String   @db.VarChar(200)
+  addressLine2 String?  @db.VarChar(200)
+  suburb       String   @db.VarChar(100)
+  city         String   @db.VarChar(100)
+  province     String   @db.VarChar(100)
+  postalCode   String?  @db.VarChar(20)
+  latitude     Decimal? @db.Decimal(9, 6)
+  longitude    Decimal? @db.Decimal(9, 6)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  quotes       Quote[]
+
+  // Supports an ownership-enforcing composite Quote FK.
+  @@unique([id, customerId])
+  @@index([customerId])
+}
+
+model Service {
+  id               String        @id @default(uuid()) @db.Uuid
+  name             String        @db.VarChar(120)
+  slug             String        @unique @db.VarChar(100)
+  shortDescription String        @db.VarChar(300)
+  description      String        @db.Text
+  benefits         String[]
+  included         String[]
+  symbol           String?       @db.VarChar(20)
+  faq              Json          @default("[]") @db.JsonB
+  seoTitle         String?       @db.VarChar(200)
+  seoDescription   String?       @db.VarChar(500)
+  active           Boolean       @default(false)
+  sortOrder        Int           @default(0)
+  createdAt        DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime      @updatedAt @db.Timestamptz(3)
+  quoteItems       QuoteItem[]
+  areas            ServiceArea[]
+
+  @@index([active, sortOrder])
+}
+
+model ServiceArea {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(100)
+  slug        String    @unique @db.VarChar(100)
+  city        String    @db.VarChar(100)
+  province    String    @db.VarChar(100)
+  description String?   @db.Text
+  active      Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+  services    Service[]
+
+  @@index([active, city])
+}
+
+model Quote {
+  id              String               @id @default(uuid()) @db.Uuid
+  reference       String               @unique @db.VarChar(40)
+  customerId      String               @db.Uuid
+  addressId       String               @db.Uuid
+  propertyType    PropertyType?
+  // Approximate square metres; unknown until the customer supplies them.
+  lawnSize        Decimal?             @db.Decimal(12, 2)
+  lawnCondition   LawnCondition?
+  frequency       ServiceFrequency?
+  currency        String               @default("ZAR") @db.Char(3)
+  estimatedMin    Decimal?             @db.Decimal(12, 2)
+  estimatedMax    Decimal?             @db.Decimal(12, 2)
+  finalPrice      Decimal?             @db.Decimal(12, 2)
+  status          QuoteStatus          @default(DRAFT)
+  customerNotes   String?              @db.Text
+  internalNotes   String?              @db.Text
+  createdAt       DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime             @updatedAt @db.Timestamptz(3)
+  customer        Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  address         Address              @relation(fields: [addressId, customerId], references: [id, customerId], onDelete: Restrict, onUpdate: Restrict)
+  items           QuoteItem[]
+  photos          QuotePhoto[]
+  statusHistory   QuoteStatusHistory[]
+  booking         Booking?
+  notifications   Notification[]
+  aiConversations AIConversation[]
+
+  @@unique([id, customerId])
+  @@index([customerId, createdAt])
+  @@index([addressId, customerId])
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
+model QuoteItem {
+  id           String   @id @default(uuid()) @db.Uuid
+  quoteId      String   @db.Uuid
+  serviceId    String   @db.Uuid
+  // Snapshot preserves the agreed description when catalogue text changes.
+  serviceName  String   @db.VarChar(120)
+  quantity     Decimal  @default(1) @db.Decimal(10, 2)
+  unitPrice    Decimal? @db.Decimal(12, 2)
+  estimatedMin Decimal? @db.Decimal(12, 2)
+  estimatedMax Decimal? @db.Decimal(12, 2)
+  finalPrice   Decimal? @db.Decimal(12, 2)
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+  quote        Quote    @relation(fields: [quoteId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  service      Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([quoteId])
+  @@index([serviceId])
+}
+
+model QuotePhoto {
+  id         String   @id @default(uuid()) @db.Uuid
+  quoteId    String   @db.Uuid
+  storageKey String   @unique @db.VarChar(1024)
+  // Optional stable URL only; never persist signed URLs or make uploads public.
+  url        String?  @db.Text
+  mimeType   String   @db.VarChar(100)
+  fileSize   Int
+  altText    String?  @db.VarChar(500)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  quote      Quote    @relation(fields: [quoteId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([quoteId, createdAt])
+}
+
+model QuoteStatusHistory {
+  id        String      @id @default(uuid()) @db.Uuid
+  quoteId   String      @db.Uuid
+  status    QuoteStatus
+  note      String?     @db.Text
+  createdAt DateTime    @default(now()) @db.Timestamptz(3)
+  quote     Quote       @relation(fields: [quoteId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([quoteId, createdAt])
+}
+
+model AvailabilitySlot {
+  id        String             @id @default(uuid()) @db.Uuid
+  startTime DateTime           @db.Timestamptz(3)
+  endTime   DateTime           @db.Timestamptz(3)
+  capacity  Int                @default(1)
+  status    AvailabilityStatus @default(UNAVAILABLE)
+  createdAt DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime           @updatedAt @db.Timestamptz(3)
+  bookings  Booking[]
+
+  @@unique([startTime, endTime])
+  @@index([status, startTime])
+}
+
+model Booking {
+  id                 String           @id @default(uuid()) @db.Uuid
+  reference          String           @unique @db.VarChar(40)
+  quoteId            String           @unique @db.Uuid
+  customerId         String           @db.Uuid
+  availabilitySlotId String           @db.Uuid
+  status             BookingStatus    @default(PENDING)
+  scheduledStart     DateTime         @db.Timestamptz(3)
+  scheduledEnd       DateTime         @db.Timestamptz(3)
+  confirmedAt        DateTime?        @db.Timestamptz(3)
+  completedAt        DateTime?        @db.Timestamptz(3)
+  cancelledAt        DateTime?        @db.Timestamptz(3)
+  createdAt          DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
+  // Address is derived from Quote to avoid contradictory duplicate address IDs.
+  quote              Quote            @relation(fields: [quoteId, customerId], references: [id, customerId], onDelete: Restrict, onUpdate: Restrict)
+  customer           Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  availabilitySlot   AvailabilitySlot @relation(fields: [availabilitySlotId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  notifications      Notification[]
+  review             Review?
+
+  @@unique([id, customerId])
+  // Prisma requires this composite unique for the ownership-safe 1:1 relation.
+  @@unique([quoteId, customerId])
+  @@index([customerId, scheduledStart])
+  @@index([availabilitySlotId, status])
+  @@index([status, scheduledStart])
+  @@index([scheduledStart])
+}
+
+model Notification {
+  id                String              @id @default(uuid()) @db.Uuid
+  customerId        String?             @db.Uuid
+  quoteId           String?             @db.Uuid
+  bookingId         String?             @db.Uuid
+  channel           NotificationChannel
+  eventType         String              @db.VarChar(100)
+  recipient         String              @db.VarChar(320)
+  status            NotificationStatus  @default(PENDING)
+  idempotencyKey    String              @unique @db.VarChar(200)
+  attempts          Int                 @default(0)
+  maxAttempts       Int                 @default(5)
+  providerReference String?             @db.VarChar(200)
+  failureReason     String?             @db.Text
+  scheduledFor      DateTime            @default(now()) @db.Timestamptz(3)
+  lockedAt          DateTime?           @db.Timestamptz(3)
+  lockToken         String?             @db.Uuid
+  sentAt            DateTime?           @db.Timestamptz(3)
+  createdAt         DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime            @updatedAt @db.Timestamptz(3)
+  customer          Customer?           @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  quote             Quote?              @relation(fields: [quoteId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  booking           Booking?            @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([status, scheduledFor])
+  @@index([status, lockedAt])
+  @@index([customerId, createdAt])
+  @@index([quoteId])
+  @@index([bookingId])
+}
+
+model GalleryImage {
+  id          String          @id @default(uuid()) @db.Uuid
+  title       String          @db.VarChar(200)
+  description String?         @db.Text
+  category    GalleryCategory
+  projectKey  String          @db.VarChar(100)
+  stage       GalleryStage    @default(STANDALONE)
+  storageKey  String?         @unique @db.VarChar(1024)
+  url         String?         @db.Text
+  altText     String          @db.VarChar(500)
+  width       Int
+  height      Int
+  isConcept   Boolean         @default(true)
+  active      Boolean         @default(false)
+  sortOrder   Int             @default(0)
+  createdAt   DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime        @updatedAt @db.Timestamptz(3)
+
+  @@index([active, category, sortOrder])
+  @@index([projectKey, stage])
+}
+
+model Review {
+  id         String   @id @default(uuid()) @db.Uuid
+  customerId String   @db.Uuid
+  bookingId  String   @unique @db.Uuid
+  rating     Int
+  comment    String?  @db.Text
+  approved   Boolean  @default(false)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  booking    Booking  @relation(fields: [bookingId, customerId], references: [id, customerId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([bookingId, customerId])
+  @@index([customerId])
+  @@index([approved, createdAt])
+}
+
+model AIConversation {
+  id         String      @id @default(uuid()) @db.Uuid
+  customerId String?     @db.Uuid
+  quoteId    String?     @db.Uuid
+  createdAt  DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime    @updatedAt @db.Timestamptz(3)
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  quote      Quote?      @relation(fields: [quoteId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  messages   AIMessage[]
+
+  @@index([customerId, createdAt])
+  @@index([quoteId])
+}
+
+model AIMessage {
+  id             String         @id @default(uuid()) @db.Uuid
+  conversationId String         @db.Uuid
+  role           AIMessageRole
+  content        String         @db.Text
+  createdAt      DateTime       @default(now()) @db.Timestamptz(3)
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([conversationId, createdAt])
+}
+
+model AuditLog {
+  id         String         @id @default(uuid()) @db.Uuid
+  actorType  AuditActorType
+  actorId    String?        @db.VarChar(100)
+  action     String         @db.VarChar(100)
+  entityType String         @db.VarChar(100)
+  entityId   String         @db.VarChar(100)
+  // Only explicitly allowlisted, non-secret metadata may be written later.
+  metadata   Json?          @db.JsonB
+  createdAt  DateTime       @default(now()) @db.Timestamptz(3)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorType, actorId, createdAt])
+  @@index([createdAt])
+}

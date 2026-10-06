@@ -1,10 +1,10 @@
 # LawnFlow
 
-A lawn-care platform built incrementally. **Milestone 2: public website.** The Milestone 1 branding, homepage hero, layout and tooling are retained. This preview does not send contact drafts, calculate prices or create bookings.
+A lawn-care platform built incrementally. **Milestone 3: database foundation, with the Milestone 2 public website preserved.** The Milestone 1 branding, homepage hero, layout and tooling are retained. This preview does not send contact drafts, calculate prices or create bookings.
 
 ## Run locally
 
-Requires Node.js 22+ and npm:
+Requires Node.js 22.12+ or 24+ and npm; Node 24.13.1 is used by CI:
 
 ```powershell
 npm ci
@@ -49,7 +49,7 @@ Next.js App Router, React, strict TypeScript, Tailwind CSS v4, ESLint, Prettier 
 
 Copy `.env.example` to `.env.local`. `NEXT_PUBLIC_WHATSAPP_NUMBER` is optional: 8–15 international digits, no `+` or spaces. When missing, every WhatsApp CTA links to the explanatory notice on `/contact#whatsapp-status`. When configured, it opens an enquiry; no quote or booking is created. Service and area pages supply contextual messages through the shared component. Restart/rebuild after changing public environment variables. Never put secrets in `NEXT_PUBLIC_*` variables.
 
-`DATABASE_URL` remains reserved for a later milestone and unused. There is no database dependency, migration or seed. Keep credentials out of Git.
+`DATABASE_URL` now configures PostgreSQL for Prisma tooling and future server-side data access. The public website still uses static content and needs no database. Copy `.env.example` to `.env` for database tooling and replace its placeholders with development credentials. `.env*` stays ignored except `.env.example`. See the database section below.
 
 Add/remove services in `data/services.ts`, and update area service references in `data/areas.ts` as necessary. Add/remove areas in `data/areas.ts`; route generation and cards follow the catalogue. Gallery entries store image paths, alt text and dimensions separately from the card; future approved remote storage can use the same shape with an explicit Next.js image allowlist.
 
@@ -85,8 +85,28 @@ Semantic landmarks, one main heading per page, skip navigation, visible focus, l
 
 ## Deferred work and launch checks
 
-Stop after Milestone 2 approval. Database/Prisma, authentication, admin, quote calculations and storage, scheduling, AI, email/SMS providers, WhatsApp Business API, AWS, Docker and pipelines are intentionally absent. Advanced SEO and structured data remain deferred.
+Stop after Milestone 3 review. Database schema, client, migration SQL and development seed are prepared; no live database was available to apply or verify the migration/seed. Authentication, admin, quote workflows, scheduling, AI, providers, AWS, Docker and production deployment remain deferred. GitHub Actions is the selected CI/CD platform; only basic validation is configured now. Advanced SEO remains deferred.
 
 Before launch: confirm service scope and actual area coverage, configure the real business WhatsApp number, replace concepts with approved photography when available, and review preview indexing directives. Add server validation and other protections when real message/quote endpoints are implemented.
 
-The build may warn about an unrelated `package-lock.json` above this repository; Next.js ignores it and the build succeeds. The Milestone 1 README recorded a development-tooling dependency advisory; this milestone did not perform a new dependency audit. Recheck dependencies before release.
+The build may warn about an unrelated ancestor `package-lock.json`; Next.js ignores it. The Milestone 3 dependency audit reports unresolved advisories in the Next.js ESLint and Prisma tooling trees; see the database documentation for details before release.
+
+## Database foundation and GitHub Actions
+
+Prisma 7.10.0 uses `prisma.config.ts`, `prisma/schema.prisma`, a generated client in `generated/prisma/`, and the lazy server-only client in `lib/db.ts`. `npm ci` generates the client automatically without requiring a database connection.
+
+```sh
+npm run db:format
+npm run db:validate
+npm run db:generate
+npm run db:migrate   # development only, after configuring local PostgreSQL
+npm run db:status
+npm run db:seed      # requires ALLOW_DEVELOPMENT_SEED=true; no production use
+npm run db:studio
+```
+
+The initial SQL migration was generated offline and has **not** been applied. Migration execution and seed idempotency await a development PostgreSQL instance. `npm run db:reset` deletes development data and requires confirmation; never use it against production. Future deployment uses `npm run db:deploy`, never `migrate dev`.
+
+The basic GitHub Actions workflow runs installation, Prisma checks, lint, typecheck, tests and build without database credentials. Full GitHub Actions CI/CD, Docker and AWS deployment belong to Milestone 14 and later infrastructure work.
+
+See [database setup and design](docs/database.md) for environment separation, schema decisions, migration/seed instructions, reset warnings, audit findings and future GitHub Secrets. No production credentials or deployment workflow are included.
